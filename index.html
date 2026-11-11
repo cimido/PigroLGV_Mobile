@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111214">
+<title>Lazy LGV Campo</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{
+  --bg:#111214; --card:#1C1D21; --card2:#222328; --borda:#2C2D33; --fg:#ECEDEF; --muted:#8B8E96;
+  --accent:#4C8DF6; --sel:#2B3F63; --ok:#2ECC71; --nok:#FF5C5C; --na:#8B8E96; --warn:#E0A030;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);
+  font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+#app{max-width:760px;margin:0 auto;min-height:100%;padding:0 14px calc(84px + env(safe-area-inset-bottom))}
+header.topo{position:sticky;top:0;z-index:5;background:var(--bg);padding:14px 0 10px;display:flex;align-items:center;gap:10px}
+header.topo h1{font-size:18px;margin:0;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header.topo .sub{color:var(--muted);font-size:12px;font-weight:400;display:block}
+.logo{width:36px;height:36px;border-radius:9px;background:var(--accent);display:grid;place-items:center;font-weight:700;color:#fff;flex:none}
+.ibtn{width:40px;height:40px;border-radius:10px;border:1px solid var(--borda);background:var(--card);display:grid;place-items:center;font-size:18px;flex:none}
+.ibtn:disabled{opacity:.35}
+.card{background:var(--card);border:1px solid var(--borda);border-radius:14px;padding:14px;margin:10px 0}
+.card h2{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.card h2 .dir{margin-left:auto;text-transform:none;letter-spacing:0}
+.muted{color:var(--muted)} .peq{font-size:12px}
+.btn{border:1px solid var(--borda);background:var(--card2);border-radius:10px;padding:11px 14px;font-weight:600;min-height:44px}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.ok{background:#1F9D55;border-color:#1F9D55;color:#fff}
+.btn.perigo{background:transparent;border-color:#5a2a2c;color:var(--nok)}
+.btn.bloco{display:block;width:100%;margin-top:10px}
+.btn:disabled{opacity:.4}
+.btn.mini{min-height:32px;padding:5px 10px;font-size:12px;border-radius:8px}
+input[type=text],input[type=search],select,textarea{width:100%;background:var(--card2);border:1px solid var(--borda);
+  border-radius:10px;padding:11px 12px;min-height:44px;outline:none}
+input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+textarea{min-height:74px;resize:vertical}
+.barra{height:8px;border-radius:8px;background:var(--card2);overflow:hidden;margin-top:8px}
+.barra i{display:block;height:100%;background:var(--ok);border-radius:8px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:4px 0 6px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--borda);background:var(--card);border-radius:999px;padding:7px 13px;font-size:13px;color:var(--muted)}
+.chip.on{background:var(--sel);border-color:var(--accent);color:var(--fg)}
+.lista{background:var(--card);border:1px solid var(--borda);border-radius:14px;overflow:hidden;margin:10px 0}
+.linha{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--borda);width:100%;background:none;border-left:0;border-right:0;border-top:0;text-align:left}
+.linha:last-child{border-bottom:0}
+.linha:active{background:var(--card2)}
+.bolinha{width:10px;height:10px;border-radius:50%;background:var(--borda);flex:none}
+.bolinha.and{background:var(--warn)} .bolinha.fim{background:var(--ok)}
+.linha .nome{font-weight:600} .linha .info{flex:1;min-width:0}
+.linha .faixa{display:flex;gap:2px;margin-top:5px;height:6px}
+.linha .faixa i{flex:1;border-radius:2px;background:var(--borda);max-width:14px}
+.linha .faixa i.o{background:var(--ok)} .linha .faixa i.n{background:var(--nok)}
+.selo{font-size:11px;font-weight:700;border-radius:999px;padding:3px 8px;background:rgba(255,92,92,.16);color:var(--nok);flex:none}
+.selo.fim{background:rgba(46,204,113,.16);color:var(--ok)}
+.item{padding:12px 0;border-bottom:1px solid var(--borda)}
+.item:last-child{border-bottom:0;padding-bottom:2px}
+.item .txt{margin-bottom:8px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.seg button{border:1px solid var(--borda);background:var(--card2);border-radius:9px;min-height:42px;font-weight:700;color:var(--muted)}
+.seg button.on[data-v=OK]{background:rgba(46,204,113,.18);border-color:var(--ok);color:var(--ok)}
+.seg button.on[data-v=NOK]{background:rgba(255,92,92,.18);border-color:var(--nok);color:var(--nok)}
+.seg button.on[data-v=NA]{background:var(--borda);border-color:#44464d;color:var(--fg)}
+.nokbox{margin-top:10px;padding:10px;border:1px solid #5a2a2c;border-radius:10px;background:rgba(255,92,92,.06)}
+.fotos{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;align-items:center}
+.fotos img{width:68px;height:68px;object-fit:cover;border-radius:8px;border:1px solid var(--borda)}
+.rot{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
+.grade2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.crono{font:700 30px/1 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.02em}
+.linhaflex{display:flex;gap:8px;align-items:center}
+.linhaflex>*{flex:1}
+.resultado{font:700 22px/1.2 ui-monospace,Menlo,Consolas,monospace;word-break:break-all;padding:14px;border-radius:10px;
+  background:var(--card2);border:1px solid var(--borda);min-height:56px}
+.resultado.tem{border-color:var(--accent);color:#fff}
+nav.abas{position:fixed;left:0;right:0;bottom:0;background:#17181B;border-top:1px solid var(--borda);
+  display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom);z-index:6}
+nav.abas button{flex:1;max-width:253px;background:none;border:0;padding:10px 4px 9px;color:var(--muted);font-size:11px;font-weight:600}
+nav.abas button svg{display:block;margin:0 auto 3px;width:22px;height:22px}
+nav.abas button.on{color:var(--accent)}
+.vazio{text-align:center;padding:48px 16px;color:var(--muted)}
+.vazio .logo{margin:0 auto 16px;width:60px;height:60px;font-size:22px;border-radius:16px}
+#visor{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:20;display:none;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:14px}
+#visor.on{display:flex} #visor img{max-width:100%;max-height:76vh;border-radius:10px}
+#aviso{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#2B3F63;color:#fff;
+  padding:10px 16px;border-radius:10px;font-size:13px;z-index:30;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%}
+#aviso.on{opacity:1}
+.kv{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--borda)}
+.kv:last-child{border:0} .kv b{font-weight:600}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<nav class="abas" id="abas"></nav>
+<div id="visor"><img alt=""><div class="linhaflex" style="width:100%;max-width:420px">
+  <button class="btn perigo" id="visorRemover"></button><button class="btn" id="visorFechar"></button></div></div>
+<div id="aviso"></div>
+<input type="file" id="arqPacote" hidden>
+<input type="file" id="arqCamera" accept="image/*" capture="environment" hidden>
+<input type="file" id="arqGaleria" accept="image/*" multiple hidden>
+
+<script>
+"use strict";
+/* ============================ Traduções da interface ============================ */
+const L = {
+pt:{frota:"Frota",calc:"Calculadora",exportar:"Exportar",semPacote:"Nenhum checklist carregado",
+ semPacoteTxt:"No programa do PC, gere os checklists e use “Exportar p/ Campo”. Depois abra aqui o arquivo recebido.",
+ abrirPacote:"Abrir arquivo do PC",buscar:"Buscar LGV…",todos:"Todos",pendentes:"Pendentes",comNok:"Com NOK",concluidos:"Concluídos",
+ deConcluidos:"{a} de {b} concluídos",nada:"Nenhum LGV neste filtro.",tempo:"Tempo de calibração",iniciar:"Iniciar",pausar:"Pausar",
+ finalizar:"Finalizar",inicio:"Início",fim:"Fim",horas:"Horas gastas",tudoOk:"Restantes OK",problema:"Descreva o problema…",
+ camera:"Câmera",galeria:"Galeria",params:"Parâmetros de calibração",abrirCalc:"Abrir na calculadora",novoValor:"Novo valor calculado",
+ notas:"Observações do LGV",notasPh:"Anotações gerais sobre este LGV…",concluir:"Marcar como concluído",reabrir:"Reabrir checklist",
+ concluido:"Concluído",remover:"Remover foto",fechar:"Fechar",lgv:"LGV",calcLivre:"Cálculo livre (sem LGV)",
+ valorAtual:"Drive Encoder Scaling atual",desvio:"Desvio medido (mm)",dica:"+ passou dos 10 m   /   − não chegou",
+ formula:"Novo = Atual × (10000 + desvio) ÷ 10000",resultado:"Novo Drive Encoder Scaling",salvoEm:"Salvo em {n}",copiar:"Copiar",
+ copiado:"Copiado",resumo:"Resumo",cliente:"Cliente",lgvs:"LGVs",alterados:"Alterados no celular",itensNok:"Itens NOK",fotos:"Fotos",
+ enviar:"Exportar para o PC",enviarTxt:"Gera um arquivo com as respostas, cálculos e fotos. No PC, use “Importar do Campo”.",
+ compartilhar:"Compartilhar arquivo",baixar:"Baixar arquivo",trocar:"Abrir outro arquivo do PC",apagar:"Apagar tudo deste aparelho",
+ confTrocar:"Há um checklist carregado neste aparelho. Abrir outro arquivo substitui tudo o que não foi exportado. Continuar?",
+ confApagar:"Apagar o checklist e todas as fotos deste aparelho?",invalido:"Este arquivo não é um pacote do Lazy LGV.",
+ carregado:"{n} LGVs carregados",idioma:"Idioma do app",nenhumAlterado:"Nada foi alterado ainda neste aparelho.",
+ gerado:"Arquivo gerado: {n}",instalar:"Dica: no menu do Chrome, toque em “Adicionar à tela inicial” para usar como aplicativo, inclusive sem internet.",
+ anterior:"Anterior",proximo:"Próximo",pacoteDe:"Pacote de {d}",semValor:"Informe o valor atual e o desvio."},
+en:{frota:"Fleet",calc:"Calculator",exportar:"Export",semPacote:"No checklist loaded",
+ semPacoteTxt:"In the PC program, generate the checklists and use “Export to Field App”. Then open the received file here.",
+ abrirPacote:"Open file from PC",buscar:"Search LGV…",todos:"All",pendentes:"Pending",comNok:"With NOK",concluidos:"Completed",
+ deConcluidos:"{a} of {b} completed",nada:"No LGV in this filter.",tempo:"Calibration time",iniciar:"Start",pausar:"Pause",
+ finalizar:"Finish",inicio:"Start",fim:"End",horas:"Hours spent",tudoOk:"Rest OK",problema:"Describe the issue…",
+ camera:"Camera",galeria:"Gallery",params:"Calibration parameters",abrirCalc:"Open in calculator",novoValor:"New calculated value",
+ notas:"LGV notes",notasPh:"General notes about this LGV…",concluir:"Mark as completed",reabrir:"Reopen checklist",
+ concluido:"Completed",remover:"Remove photo",fechar:"Close",lgv:"LGV",calcLivre:"Free calculation (no LGV)",
+ valorAtual:"Current Drive Encoder Scaling",desvio:"Measured deviation (mm)",dica:"+ went past 10 m   /   − fell short",
+ formula:"New = Current × (10000 + deviation) ÷ 10000",resultado:"New Drive Encoder Scaling",salvoEm:"Saved to {n}",copiar:"Copy",
+ copiado:"Copied",resumo:"Summary",cliente:"Client",lgvs:"LGVs",alterados:"Changed on the phone",itensNok:"NOK items",fotos:"Photos",
+ enviar:"Export to PC",enviarTxt:"Creates a file with answers, calculations and photos. On the PC, use “Import from Field App”.",
+ compartilhar:"Share file",baixar:"Download file",trocar:"Open another file from PC",apagar:"Erase everything on this device",
+ confTrocar:"A checklist is loaded on this device. Opening another file replaces everything not yet exported. Continue?",
+ confApagar:"Erase the checklist and all photos from this device?",invalido:"This file is not a Lazy LGV package.",
+ carregado:"{n} LGVs loaded",idioma:"App language",nenhumAlterado:"Nothing has been changed on this device yet.",
+ gerado:"File created: {n}",instalar:"Tip: in the Chrome menu, tap “Add to Home screen” to use it as an app, even offline.",
+ anterior:"Previous",proximo:"Next",pacoteDe:"Package from {d}",semValor:"Enter the current value and the deviation."},
+es:{frota:"Flota",calc:"Calculadora",exportar:"Exportar",semPacote:"Ningún checklist cargado",
+ semPacoteTxt:"En el programa del PC, genere los checklists y use “Exportar a Campo”. Luego abra aquí el archivo recibido.",
+ abrirPacote:"Abrir archivo del PC",buscar:"Buscar LGV…",todos:"Todos",pendentes:"Pendientes",comNok:"Con NOK",concluidos:"Completados",
+ deConcluidos:"{a} de {b} completados",nada:"Ningún LGV en este filtro.",tempo:"Tiempo de calibración",iniciar:"Iniciar",pausar:"Pausar",
+ finalizar:"Finalizar",inicio:"Inicio",fim:"Fin",horas:"Horas gastadas",tudoOk:"Resto OK",problema:"Describa el problema…",
+ camera:"Cámara",galeria:"Galería",params:"Parámetros de calibración",abrirCalc:"Abrir en la calculadora",novoValor:"Nuevo valor calculado",
+ notas:"Observaciones del LGV",notasPh:"Notas generales sobre este LGV…",concluir:"Marcar como completado",reabrir:"Reabrir checklist",
+ concluido:"Completado",remover:"Quitar foto",fechar:"Cerrar",lgv:"LGV",calcLivre:"Cálculo libre (sin LGV)",
+ valorAtual:"Drive Encoder Scaling actual",desvio:"Desviación medida (mm)",dica:"+ pasó los 10 m   /   − no llegó",
+ formula:"Nuevo = Actual × (10000 + desviación) ÷ 10000",resultado:"Nuevo Drive Encoder Scaling",salvoEm:"Guardado en {n}",copiar:"Copiar",
+ copiado:"Copiado",resumo:"Resumen",cliente:"Cliente",lgvs:"LGVs",alterados:"Modificados en el móvil",itensNok:"Ítems NOK",fotos:"Fotos",
+ enviar:"Exportar al PC",enviarTxt:"Genera un archivo con respuestas, cálculos y fotos. En el PC, use “Importar de Campo”.",
+ compartilhar:"Compartir archivo",baixar:"Descargar archivo",trocar:"Abrir otro archivo del PC",apagar:"Borrar todo de este dispositivo",
+ confTrocar:"Hay un checklist cargado en este dispositivo. Abrir otro archivo sustituye todo lo no exportado. ¿Continuar?",
+ confApagar:"¿Borrar el checklist y todas las fotos de este dispositivo?",invalido:"Este archivo no es un paquete de Lazy LGV.",
+ carregado:"{n} LGVs cargados",idioma:"Idioma de la app",nenhumAlterado:"Aún no se ha modificado nada en este dispositivo.",
+ gerado:"Archivo generado: {n}",instalar:"Consejo: en el menú de Chrome, toque “Añadir a pantalla de inicio” para usarla como app, incluso sin internet.",
+ anterior:"Anterior",proximo:"Siguiente",pacoteDe:"Paquete del {d}",semValor:"Indique el valor actual y la desviación."},
+it:{frota:"Flotta",calc:"Calcolatrice",exportar:"Esporta",semPacote:"Nessuna checklist caricata",
+ semPacoteTxt:"Nel programma del PC, genera le checklist e usa “Esporta per il Campo”. Poi apri qui il file ricevuto.",
+ abrirPacote:"Apri file dal PC",buscar:"Cerca LGV…",todos:"Tutti",pendentes:"In sospeso",comNok:"Con NOK",concluidos:"Completati",
+ deConcluidos:"{a} di {b} completati",nada:"Nessun LGV in questo filtro.",tempo:"Tempo di calibrazione",iniciar:"Avvia",pausar:"Pausa",
+ finalizar:"Termina",inicio:"Inizio",fim:"Fine",horas:"Ore impiegate",tudoOk:"Restanti OK",problema:"Descrivi il problema…",
+ camera:"Fotocamera",galeria:"Galleria",params:"Parametri di calibrazione",abrirCalc:"Apri nella calcolatrice",novoValor:"Nuovo valore calcolato",
+ notas:"Note dell'LGV",notasPh:"Note generali su questo LGV…",concluir:"Segna come completato",reabrir:"Riapri checklist",
+ concluido:"Completato",remover:"Rimuovi foto",fechar:"Chiudi",lgv:"LGV",calcLivre:"Calcolo libero (senza LGV)",
+ valorAtual:"Drive Encoder Scaling attuale",desvio:"Scostamento misurato (mm)",dica:"+ oltre i 10 m   /   − non arrivato",
+ formula:"Nuovo = Attuale × (10000 + scostamento) ÷ 10000",resultado:"Nuovo Drive Encoder Scaling",salvoEm:"Salvato in {n}",copiar:"Copia",
+ copiado:"Copiato",resumo:"Riepilogo",cliente:"Cliente",lgvs:"LGV",alterados:"Modificati sul telefono",itensNok:"Voci NOK",fotos:"Foto",
+ enviar:"Esporta al PC",enviarTxt:"Crea un file con risposte, calcoli e foto. Sul PC, usa “Importa dal Campo”.",
+ compartilhar:"Condividi file",baixar:"Scarica file",trocar:"Apri un altro file dal PC",apagar:"Cancella tutto da questo dispositivo",
+ confTrocar:"C'è una checklist caricata su questo dispositivo. Aprire un altro file sostituisce tutto ciò che non è stato esportato. Continuare?",
+ confApagar:"Cancellare la checklist e tutte le foto da questo dispositivo?",invalido:"Questo file non è un pacchetto Lazy LGV.",
+ carregado:"{n} LGV caricati",idioma:"Lingua dell'app",nenhumAlterado:"Non è stato ancora modificato nulla su questo dispositivo.",
+ gerado:"File creato: {n}",instalar:"Suggerimento: nel menu di Chrome, tocca “Aggiungi a schermata Home” per usarla come app, anche offline.",
+ anterior:"Precedente",proximo:"Successivo",pacoteDe:"Pacchetto del {d}",semValor:"Inserisci il valore attuale e lo scostamento."}
+};
+const NOMES_IDIOMA = {pt:"Português",en:"English",es:"Español",it:"Italiano"};
+const FORMATO = "lazylgv-campo";
+
+/* ============================ Estado e armazenamento ============================ */
+let S = {pack:null, lgvs:{}, ordem:[], lang:"pt", ui:{tela:"frota", filtro:"todos", tipo:"", busca:"", lgv:null, calc:""}};
+let livre = {atual:"", desvio:""};          // cálculo livre da calculadora (não é gravado)
+const cacheFotos = {};                      // id -> dataURL
+const $ = (s, r=document) => r.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const t = (k, v={}) => { let s = (L[S.lang]||L.pt)[k] ?? L.pt[k] ?? k; for (const n in v) s = s.replace("{"+n+"}", v[n]); return s; };
+const tx = k => (S.pack && S.pack.textos && S.pack.textos[k]) || k;
+
+const DB = {
+  _db:null,
+  abrir(){ return new Promise((ok, erro) => {
+    if (this._db) return ok(this._db);
+    const r = indexedDB.open("lazylgv-campo", 1);
+    r.onupgradeneeded = () => { r.result.createObjectStore("kv"); r.result.createObjectStore("fotos"); };
+    r.onsuccess = () => { this._db = r.result; ok(this._db); };
+    r.onerror = () => erro(r.error);
+  });},
+  async op(loja, modo, fn){ const db = await this.abrir(); return new Promise((ok, erro) => {
+    const tr = db.transaction(loja, modo); const r = fn(tr.objectStore(loja));
+    tr.oncomplete = () => ok(r && r.result); tr.onerror = () => erro(tr.error); tr.onabort = () => erro(tr.error);
+  });},
+  ler(loja, k){ return this.op(loja, "readonly", s => s.get(k)); },
+  gravar(loja, k, v){ return this.op(loja, "readwrite", s => s.put(v, k)); },
+  apagar(loja, k){ return this.op(loja, "readwrite", s => s.delete(k)); },
+  limpar(loja){ return this.op(loja, "readwrite", s => s.clear()); },
+};
+let _timerSalvar = null;
+function salvar(){ clearTimeout(_timerSalvar); _timerSalvar = setTimeout(salvarAgora, 250); }
+function salvarAgora(){ clearTimeout(_timerSalvar);
+  return DB.gravar("kv", "estado", {pack:S.pack, lgvs:S.lgvs, ordem:S.ordem, lang:S.lang, ui:S.ui}).catch(e => aviso(String(e))); }
+async function fotoDados(id){ if (!(id in cacheFotos)) cacheFotos[id] = await DB.ler("fotos", id); return cacheFotos[id]; }
+
+/* ============================ Utilidades ============================ */
+function aviso(msg){ const a = $("#aviso"); a.textContent = msg; a.classList.add("on"); clearTimeout(aviso._t); aviso._t = setTimeout(() => a.classList.remove("on"), 2600); }
+const p2 = n => String(n).padStart(2, "0");
+function isoLocal(d=new Date()){ return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}T${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`; }
+function horaCurta(iso){ if (!iso) return "—"; const d = new Date(iso); return isNaN(d) ? String(iso) : `${p2(d.getDate())}/${p2(d.getMonth()+1)} ${p2(d.getHours())}:${p2(d.getMinutes())}`; }
+function duracao(seg){ seg = Math.max(0, Math.floor(seg)); return `${p2(Math.floor(seg/3600))}:${p2(Math.floor(seg%3600/60))}:${p2(seg%60)}`; }
+function paraNumero(txt){ const s = String(txt ?? "").trim().replace(/\s/g, "").replace(/[−–]/g, "-").replace(",", "."); if (!s) return null; const n = Number(s); return Number.isFinite(n) ? n : null; }
+/* Mesma regra do programa do PC: o resultado sai com as casas decimais do valor atual. */
+function formatarComo(valor, modelo){ const s = String(modelo ?? "").trim().replace(",", "."); let casas = s.includes(".") ? s.split(".")[1].length : 0; casas = casas > 0 ? Math.min(casas, 15) : 14; return valor.toFixed(casas); }
+function calcularNovo(atualTxt, desvioTxt){ const atual = paraNumero(atualTxt), desvio = paraNumero(desvioTxt); if (atual === null || desvio === null) return "";
+  const ref = (S.pack && Number(S.pack.referencia_mm)) || 10000; return formatarComo(atual * (ref + desvio) / ref, atualTxt); }
+function tempoCron(l){ const c = l.cron || {}; let s = Number(c.acumulado) || 0; if (c.rodando && c.retomado) s += (Date.now() - c.retomado) / 1000; return s; }
+function contagem(l){ const c = {OK:0, NOK:0, NA:0}; for (const k in l.checklist) c[l.checklist[k]] = (c[l.checklist[k]]||0) + 1; return c; }
+function situacao(l){ if (l.concluido) return "fim"; const c = contagem(l); return (c.OK || c.NOK || tempoCron(l) > 0) ? "and" : ""; }
+function tocar(l){ l.alterado = true; salvar(); }
+function chaveItem(l, ci, ii){ const cat = l.categorias[ci]; return cat.nome + " > " + cat.itens[ii]; }
+function numFotos(l){ let n = 0; for (const k in (l.fotos||{})) n += l.fotos[k].length; return n; }
+
+/* ============================ Navegação ============================ */
+const ICONES = {
+ frota:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>',
+ calc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01"/></svg>',
+ exportar:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5M5 15v4a2 2 0 002 2h10a2 2 0 002-2v-4"/></svg>'};
+function ir(tela, extra={}){ Object.assign(S.ui, {tela}, extra); salvar(); render(); window.scrollTo(0, 0); }
+function render(){
+  document.documentElement.lang = S.lang;
+  const aba = S.ui.tela === "lgv" ? "frota" : S.ui.tela;
+  $("#abas").innerHTML = ["frota","calc","exportar"].map(a => `<button data-aba="${a}" class="${a===aba?"on":""}">${ICONES[a]}${t(a)}</button>`).join("");
+  const el = $("#app");
+  if (S.ui.tela === "lgv" && S.lgvs[S.ui.lgv]) el.innerHTML = telaLgv(S.lgvs[S.ui.lgv]);
+  else if (S.ui.tela === "calc") el.innerHTML = telaCalc();
+  else if (S.ui.tela === "exportar") el.innerHTML = telaExportar();
+  else { S.ui.tela = "frota"; el.innerHTML = telaFrota(); }
+  if (S.ui.tela === "lgv") carregarMiniaturas();
+}
+
+/* ============================ Tela: frota ============================ */
+function filtrados(){ const b = S.ui.busca.trim().toLowerCase();
+  return S.ordem.map(k => S.lgvs[k]).filter(l => {
+    if (S.ui.tipo && l.tipo !== S.ui.tipo) return false;
+    if (b && !(l.nome.toLowerCase().includes(b) || String(l.ip).includes(b))) return false;
+    if (S.ui.filtro === "pendentes") return !l.concluido;
+    if (S.ui.filtro === "nok") return contagem(l).NOK > 0;
+    if (S.ui.filtro === "concluidos") return l.concluido;
+    return true; }); }
+function telaFrota(){
+  if (!S.pack) return `<header class="topo"><div class="logo">LG</div><h1>Lazy LGV Campo</h1></header>
+    <div class="vazio"><div class="logo">LG</div><h3 style="color:var(--fg);margin:0 0 8px">${t("semPacote")}</h3><p>${t("semPacoteTxt")}</p>
+    <button class="btn pri" data-acao="abrir">${t("abrirPacote")}</button><p class="peq" style="margin-top:28px">${t("instalar")}</p></div>`;
+  const todos = S.ordem.map(k => S.lgvs[k]), feitos = todos.filter(l => l.concluido).length;
+  const tipos = [...new Set(todos.map(l => l.tipo))];
+  const lista = filtrados();
+  return `<header class="topo"><div class="logo">LG</div><h1>${esc(S.pack.nome_cliente || S.pack.cliente)}<span class="sub">${esc(S.pack.cliente)} · ${t("pacoteDe",{d:horaCurta(S.pack.gerado_em)})}</span></h1></header>
+  <div class="card"><b>${t("deConcluidos",{a:feitos,b:todos.length})}</b><div class="barra"><i style="width:${todos.length?100*feitos/todos.length:0}%"></i></div></div>
+  <input type="search" id="busca" placeholder="${t("buscar")}" value="${esc(S.ui.busca)}">
+  <div class="chips" style="margin-top:8px">${[["todos","todos"],["pendentes","pendentes"],["nok","comNok"],["concluidos","concluidos"]]
+     .map(([v,k]) => `<button class="chip ${S.ui.filtro===v?"on":""}" data-filtro="${v}">${t(k)}</button>`).join("")}</div>
+  <div class="chips"><button class="chip ${S.ui.tipo===""?"on":""}" data-tipo="">${t("todos")} · ${todos.length}</button>${tipos.map(tp =>
+     `<button class="chip ${S.ui.tipo===tp?"on":""}" data-tipo="${esc(tp)}">${esc(tp)} · ${todos.filter(l=>l.tipo===tp).length}</button>`).join("")}</div>
+  <div id="listaLgvs">${htmlLista(lista)}</div>`;
+}
+function htmlLista(lista){
+  if (!lista.length) return `<div class="vazio">${t("nada")}</div>`;
+  return `<div class="lista">${lista.map(l => { const c = contagem(l), total = c.OK + c.NOK + c.NA, n = Math.min(total, 24);
+    const o = Math.round(n * c.OK / (total||1)), k = c.NOK ? Math.max(1, Math.round(n * c.NOK / total)) : 0;
+    return `<button class="linha" data-lgv="${esc(l.chave)}"><span class="bolinha ${situacao(l)}"></span><span class="info"><span class="nome">${esc(l.nome)}</span>
+      <span class="muted peq"> · ${esc(l.ip)}</span><span class="faixa">${"<i class='n'></i>".repeat(k)}${"<i class='o'></i>".repeat(Math.max(0,o))}${"<i></i>".repeat(Math.max(0,n-o-k))}</span></span>
+      ${c.NOK ? `<span class="selo">${c.NOK} NOK</span>` : ""}${l.concluido ? `<span class="selo fim">✓</span>` : ""}<span class="muted">›</span></button>`; }).join("")}</div>`;
+}
+
+/* ============================ Tela: checklist de um LGV ============================ */
+function telaLgv(l){
+  const i = S.ordem.indexOf(l.chave), c = contagem(l), rod = !!(l.cron && l.cron.rodando);
+  return `<header class="topo"><button class="ibtn" data-acao="voltar">‹</button><h1>${esc(l.nome)}<span class="sub">${esc(l.tipo)} · ${esc(l.ip)}</span></h1>
+    <button class="ibtn" data-acao="ant" ${i<=0?"disabled":""}>↑</button><button class="ibtn" data-acao="prox" ${i>=S.ordem.length-1?"disabled":""}>↓</button></header>
+  <div class="card"><h2>${t("tempo")}<span class="dir" id="contagem">${htmlContagem(c)}</span></h2>
+    <div class="linhaflex"><div class="crono" id="crono">${duracao(tempoCron(l))}</div>
+      <div style="flex:none;text-align:right" class="peq muted">${t("inicio")}: <span id="cInicio">${horaCurta(l.cron.inicio)}</span><br>${t("fim")}: <span id="cFim">${horaCurta(l.cron.fim)}</span></div></div>
+    <div class="linhaflex" style="margin-top:12px" id="botoesCron">${htmlBotoesCron(l)}</div>
+    <label class="rot">${t("horas")}</label><input type="text" inputmode="decimal" data-campo="horas" value="${esc(l.horas)}"></div>
+  ${l.categorias.map((cat, ci) => `<div class="card" data-cat="${ci}"><h2>${esc(tx(cat.nome))}<button class="btn mini dir" data-tudook="${ci}">${t("tudoOk")}</button></h2>
+     ${cat.itens.map((_, ii) => htmlItem(l, ci, ii)).join("")}</div>`).join("")}
+  <div class="card"><h2>${t("params")}</h2>${Object.keys(l.params).map(p => `<label class="rot">${esc(p)}</label>
+     <input type="text" inputmode="${/type/i.test(p)?"numeric":"text"}" data-param="${esc(p)}" value="${esc(l.params[p])}">`).join("")}
+     ${l.campo_encoder ? `<label class="rot">${t("novoValor")}</label><div class="resultado ${l.calc.novo?"tem":""}" style="font-size:16px;min-height:44px;padding:11px 12px">${esc(l.calc.novo || "—")}</div>
+     <button class="btn bloco" data-acao="abrirCalc">${t("abrirCalc")}</button>` : ""}</div>
+  <div class="card"><h2>${t("notas")}</h2><textarea data-campo="notas" placeholder="${t("notasPh")}">${esc(l.notas)}</textarea></div>
+  <button class="btn bloco ${l.concluido?"":"ok"}" data-acao="concluir">${l.concluido ? t("reabrir") : "✓ " + t("concluir")}</button>
+  <div class="linhaflex" style="margin-top:10px"><button class="btn" data-acao="ant" ${i<=0?"disabled":""}>‹ ${t("anterior")}</button>
+    <button class="btn" data-acao="prox" ${i>=S.ordem.length-1?"disabled":""}>${t("proximo")} ›</button></div>`;
+}
+function htmlContagem(c){ return `<span style="color:var(--ok)">${c.OK} OK</span> · <span style="color:var(--nok)">${c.NOK} NOK</span> · ${c.NA} N/A`; }
+function htmlBotoesCron(l){ const c = l.cron, rod = !!c.rodando;
+  return `<button class="btn ok" data-cron="iniciar" ${rod?"disabled":""}>▶ ${t("iniciar")}</button><button class="btn" data-cron="pausar" ${rod?"":"disabled"}>⏸ ${t("pausar")}</button>
+          <button class="btn perigo" data-cron="finalizar" ${(!c.inicio || (c.fim && !rod))?"disabled":""}>⏹ ${t("finalizar")}</button>`; }
+function htmlItem(l, ci, ii){
+  const k = chaveItem(l, ci, ii), v = l.checklist[k] || "NA", fotos = (l.fotos && l.fotos[k]) || [];
+  return `<div class="item" data-ci="${ci}" data-ii="${ii}"><div class="txt">${esc(tx(l.categorias[ci].itens[ii]))}</div>
+   <div class="seg">${["OK","NOK","NA"].map(o => `<button data-v="${o}" class="${v===o?"on":""}">${o==="NA"?"N/A":o}</button>`).join("")}</div>
+   ${v === "NOK" ? `<div class="nokbox"><textarea data-obs placeholder="${t("problema")}">${esc(l.observacoes[k] || "")}</textarea>
+     <div class="fotos">${fotos.map(id => `<img data-foto="${esc(id)}" alt="">`).join("")}
+       <button class="btn mini" data-foto-nova="camera">📷 ${t("camera")}</button><button class="btn mini" data-foto-nova="galeria">🖼 ${t("galeria")}</button></div></div>` : ""}</div>`;
+}
+async function carregarMiniaturas(raiz=document){ for (const img of raiz.querySelectorAll("img[data-foto]")) { if (!img.src) { const d = await fotoDados(img.dataset.foto); if (d) img.src = d; } } }
+function atualizarItem(l, ci, ii){ const el = $(`.item[data-ci="${ci}"][data-ii="${ii}"]`); if (!el) return; el.outerHTML = htmlItem(l, ci, ii);
+  carregarMiniaturas(); const c = $("#contagem"); if (c) c.innerHTML = htmlContagem(contagem(l)); }
+
+/* ============================ Tela: calculadora ============================ */
+function lgvCalc(){ return S.lgvs[S.ui.calc] || null; }
+function telaCalc(){
+  const l = lgvCalc(), grupos = {};
+  S.ordem.forEach(k => { const x = S.lgvs[k]; if (x.campo_encoder) (grupos[x.tipo] = grupos[x.tipo] || []).push(x); });
+  const atual = l ? (l.params[l.campo_encoder] || "") : livre.atual, desvio = l ? (l.calc.desvio || "") : livre.desvio, novo = calcularNovo(atual, desvio);
+  return `<header class="topo"><div class="logo">LG</div><h1>${t("calc")}<span class="sub">Drive Encoder Scaling</span></h1></header>
+  <div class="card"><label class="rot" style="margin-top:0">${t("lgv")}</label>
+    <select id="calcLgv"><option value="">${t("calcLivre")}</option>${Object.keys(grupos).map(g => `<optgroup label="${esc(g)}">${grupos[g].map(x =>
+      `<option value="${esc(x.chave)}" ${l && l.chave===x.chave ? "selected" : ""}>${esc(x.nome)}${x.calc.novo ? " ✓" : ""}</option>`).join("")}</optgroup>`).join("")}</select>
+    <label class="rot">${t("valorAtual")}</label><input type="text" inputmode="decimal" id="calcAtual" value="${esc(atual)}" autocomplete="off">
+    <label class="rot">${t("desvio")}</label>
+    <div class="linhaflex"><button class="btn" id="calcSinal" style="flex:none;width:56px;font-size:20px">±</button>
+      <input type="text" inputmode="decimal" id="calcDesvio" value="${esc(desvio)}" autocomplete="off" style="text-align:center;font-size:18px;font-weight:700"></div>
+    <div class="peq muted" style="text-align:center;margin-top:6px">${t("dica")}</div></div>
+  <div class="card"><h2>${t("resultado")}</h2><div class="resultado ${novo?"tem":""}" id="calcNovo">${esc(novo || "—")}</div>
+    <div class="peq muted" style="margin-top:8px" id="calcInfo">${novo ? (l ? "✓ " + t("salvoEm",{n:l.nome}) : "") : t("semValor")}</div>
+    <div class="peq muted" style="margin-top:4px">${t("formula")}</div>
+    <button class="btn bloco" id="calcCopiar" ${novo?"":"disabled"}>${t("copiar")}</button></div>`;
+}
+function recalcular(){
+  const l = lgvCalc(), atual = $("#calcAtual").value, desvio = $("#calcDesvio").value, novo = calcularNovo(atual, desvio);
+  if (l) { l.params[l.campo_encoder] = atual; l.calc.desvio = desvio; l.calc.novo = novo; tocar(l); } else { livre = {atual, desvio}; }
+  const r = $("#calcNovo"); r.textContent = novo || "—"; r.classList.toggle("tem", !!novo);
+  $("#calcInfo").textContent = novo ? (l ? "✓ " + t("salvoEm",{n:l.nome}) : "") : t("semValor"); $("#calcCopiar").disabled = !novo;
+}
+
+/* ============================ Tela: exportar ============================ */
+function telaExportar(){
+  const idioma = `<div class="card"><h2>${t("idioma")}</h2><select id="selIdioma">${Object.keys(NOMES_IDIOMA).map(k => `<option value="${k}" ${k===S.lang?"selected":""}>${NOMES_IDIOMA[k]}</option>`).join("")}</select></div>`;
+  if (!S.pack) return `<header class="topo"><div class="logo">LG</div><h1>${t("exportar")}</h1></header>
+    <div class="vazio"><p>${t("semPacoteTxt")}</p><button class="btn pri" data-acao="abrir">${t("abrirPacote")}</button></div>${idioma}`;
+  const todos = S.ordem.map(k => S.lgvs[k]), alt = todos.filter(l => l.alterado);
+  const nok = todos.reduce((a,l) => a + contagem(l).NOK, 0), fotos = todos.reduce((a,l) => a + numFotos(l), 0);
+  const podeCompartilhar = !!(navigator.canShare && window.File);
+  return `<header class="topo"><div class="logo">LG</div><h1>${t("exportar")}<span class="sub">${esc(S.pack.cliente)} · ${esc(S.pack.nome_cliente||"")}</span></h1></header>
+  <div class="card"><h2>${t("resumo")}</h2>
+    <div class="kv"><span>${t("lgvs")}</span><b>${todos.length}</b></div><div class="kv"><span>${t("concluidos")}</span><b>${todos.filter(l=>l.concluido).length}</b></div>
+    <div class="kv"><span>${t("alterados")}</span><b>${alt.length}</b></div><div class="kv"><span>${t("itensNok")}</span><b>${nok}</b></div>
+    <div class="kv"><span>${t("fotos")}</span><b>${fotos}</b></div></div>
+  <div class="card"><h2>${t("enviar")}</h2><p class="muted" style="margin:0 0 4px">${alt.length ? t("enviarTxt") : t("nenhumAlterado")}</p>
+    ${podeCompartilhar ? `<button class="btn pri bloco" data-acao="compartilhar" ${alt.length?"":"disabled"}>${t("compartilhar")}</button>` : ""}
+    <button class="btn ${podeCompartilhar?"":"pri"} bloco" data-acao="baixar" ${alt.length?"":"disabled"}>${t("baixar")}</button>
+    <div class="peq muted" id="infoExport" style="margin-top:8px"></div></div>
+  ${idioma}
+  <div class="card"><button class="btn bloco" style="margin-top:0" data-acao="abrir">${t("trocar")}</button>
+    <button class="btn perigo bloco" data-acao="apagar">${t("apagar")}</button></div>`;
+}
+async function montarRetorno(){
+  const lgvs = [];
+  for (const k of S.ordem) { const l = S.lgvs[k]; if (!l.alterado) continue;
+    const fotos = {};
+    for (const item in (l.fotos||{})) { const lista = [];
+      for (const id of l.fotos[item]) { const d = await fotoDados(id); if (d) lista.push({nome:id + ".jpg", dados:d}); }
+      if (lista.length) fotos[item] = lista; }
+    lgvs.push({chave:l.chave, nome:l.nome, checklist:l.checklist, observacoes:l.observacoes, params:l.params, horas:l.horas,
+      cron:{inicio:l.cron.inicio||null, fim:l.cron.fim||null, acumulado:Math.round(tempoCron(l)*10)/10},
+      calc:{desvio:l.calc.desvio||"", novo:l.calc.novo||""}, notas:l.notas||"", concluido:!!l.concluido, fotos}); }
+  const d = new Date();
+  const nome = `Retorno_${S.pack.cliente}_${d.getFullYear()}${p2(d.getMonth()+1)}${p2(d.getDate())}_${p2(d.getHours())}${p2(d.getMinutes())}.json`;
+  const conteudo = JSON.stringify({formato:FORMATO, versao:1, direcao:"app->pc", id:S.pack.id, cliente:S.pack.cliente,
+    nome_cliente:S.pack.nome_cliente, exportado_em:isoLocal(), lgvs});
+  return {nome, blob:new Blob([conteudo], {type:"application/json"})};
+}
+async function exportar(modo){
+  const {nome, blob} = await montarRetorno();
+  if (modo === "compartilhar") { const arquivo = new File([blob], nome, {type:"application/json"});
+    try { if (navigator.canShare({files:[arquivo]})) { await navigator.share({files:[arquivo], title:nome}); $("#infoExport").textContent = t("gerado",{n:nome}); return; } }
+    catch (e) { if (e && e.name === "AbortError") return; } }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = nome; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 60000); $("#infoExport").textContent = t("gerado",{n:nome});
+}
+
+/* ============================ Abrir o pacote do PC ============================ */
+async function abrirPacote(arquivo){
+  let pacote; try { pacote = JSON.parse(await arquivo.text()); } catch (e) { pacote = null; }
+  if (!pacote || pacote.formato !== FORMATO || !Array.isArray(pacote.lgvs) || !pacote.lgvs.length || !pacote.lgvs[0].categorias) { alert(t("invalido")); return; }
+  if (S.pack && S.ordem.some(k => S.lgvs[k].alterado) && !confirm(t("confTrocar"))) return;
+  await DB.limpar("fotos"); for (const k in cacheFotos) delete cacheFotos[k];
+  const lgvs = {}, ordem = [];
+  for (const b of pacote.lgvs) { const l = {chave:String(b.chave), nome:String(b.nome), tipo:String(b.tipo||b.modelo||"LGV"), modelo:b.modelo||"", ip:b.ip||"",
+      categorias:b.categorias||[], checklist:Object.assign({}, b.checklist), observacoes:Object.assign({}, b.observacoes), params:Object.assign({}, b.params),
+      campo_encoder:b.campo_encoder||"", horas:b.horas ?? "", cron:{inicio:(b.cron||{}).inicio||null, fim:(b.cron||{}).fim||null, acumulado:Number((b.cron||{}).acumulado)||0, rodando:false, retomado:null},
+      calc:{desvio:(b.calc||{}).desvio||"", novo:(b.calc||{}).novo||""}, notas:b.notas||"", concluido:!!b.concluido, fotos:{}, alterado:false};
+    for (const cat of l.categorias) for (const it of cat.itens) { const k = cat.nome + " > " + it; if (!l.checklist[k]) l.checklist[k] = "NA"; }
+    lgvs[l.chave] = l; ordem.push(l.chave); }
+  delete pacote.lgvs;
+  S.pack = pacote; S.lgvs = lgvs; S.ordem = ordem; if (L[pacote.idioma]) S.lang = pacote.idioma;
+  S.ui = {tela:"frota", filtro:"todos", tipo:"", busca:"", lgv:null, calc:""};
+  await salvarAgora(); if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+  render(); aviso(t("carregado",{n:ordem.length}));
+}
+
+/* ============================ Fotos ============================ */
+function reduzirImagem(arquivo, maximo=1600, qualidade=0.72){ return new Promise((ok, erro) => {
+  const url = URL.createObjectURL(arquivo), img = new Image();
+  img.onload = () => { const f = Math.min(1, maximo / Math.max(img.width, img.height)); const c = document.createElement("canvas");
+    c.width = Math.round(img.width * f); c.height = Math.round(img.height * f); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    URL.revokeObjectURL(url); ok(c.toDataURL("image/jpeg", qualidade)); };
+  img.onerror = () => { URL.revokeObjectURL(url); erro(new Error("imagem")); }; img.src = url; }); }
+let alvoFoto = null;      // {chave, ci, ii}
+async function receberFotos(arquivos){
+  if (!alvoFoto) return; const l = S.lgvs[alvoFoto.chave]; if (!l) return; const k = chaveItem(l, alvoFoto.ci, alvoFoto.ii);
+  for (const arq of arquivos) { try { const dados = await reduzirImagem(arq); const id = "f" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+      await DB.gravar("fotos", id, dados); cacheFotos[id] = dados; (l.fotos[k] = l.fotos[k] || []).push(id); } catch (e) { aviso(String(e.message || e)); } }
+  tocar(l); atualizarItem(l, alvoFoto.ci, alvoFoto.ii);
+}
+let fotoAberta = null;    // {chave, item, id, ci, ii}
+
+/* ============================ Eventos ============================ */
+document.addEventListener("click", async ev => {
+  const alvo = ev.target.closest("button, img[data-foto]"); if (!alvo) return;
+  const d = alvo.dataset, l = S.lgvs[S.ui.lgv];
+  if (d.aba) return ir(d.aba);
+  if (d.lgv) return ir("lgv", {lgv:d.lgv});
+  if (d.filtro !== undefined) { S.ui.filtro = d.filtro; salvar(); return render(); }
+  if (d.tipo !== undefined) { S.ui.tipo = d.tipo; salvar(); return render(); }
+  if (d.acao === "abrir") return $("#arqPacote").click();
+  if (d.acao === "voltar") return ir("frota");
+  if (d.acao === "ant" || d.acao === "prox") { const i = S.ordem.indexOf(S.ui.lgv) + (d.acao === "ant" ? -1 : 1); if (S.ordem[i]) ir("lgv", {lgv:S.ordem[i]}); return; }
+  if (d.acao === "abrirCalc") return ir("calc", {calc:S.ui.lgv});
+  if (d.acao === "concluir" && l) { l.concluido = !l.concluido; if (l.concluido && l.cron.rodando) cron(l, "finalizar"); tocar(l);
+    if (l.concluido) { const prox = S.ordem.slice(S.ordem.indexOf(l.chave) + 1).find(k => !S.lgvs[k].concluido); return prox ? ir("lgv", {lgv:prox}) : ir("frota"); } return render(); }
+  if (d.acao === "compartilhar" || d.acao === "baixar") return exportar(d.acao);
+  if (d.acao === "apagar") { if (!confirm(t("confApagar"))) return; await DB.limpar("fotos"); S.pack = null; S.lgvs = {}; S.ordem = []; await salvarAgora(); return ir("frota"); }
+  if (d.cron && l) { cron(l, d.cron); return; }
+  if (d.tudook !== undefined && l) { const ci = +d.tudook; l.categorias[ci].itens.forEach((_, ii) => { const k = chaveItem(l, ci, ii); if (l.checklist[k] === "NA") l.checklist[k] = "OK"; });
+    tocar(l); const y = window.scrollY; render(); window.scrollTo(0, y); return; }
+  const item = alvo.closest(".item");
+  if (item && l) { const ci = +item.dataset.ci, ii = +item.dataset.ii, k = chaveItem(l, ci, ii);
+    if (d.v) { l.checklist[k] = d.v; tocar(l); atualizarItem(l, ci, ii); if (d.v === "NOK") { const ta = $(`.item[data-ci="${ci}"][data-ii="${ii}"] textarea`); if (ta) ta.focus(); } return; }
+    if (d.fotoNova) { alvoFoto = {chave:l.chave, ci, ii}; const entrada = $(d.fotoNova === "camera" ? "#arqCamera" : "#arqGaleria"); entrada.value = ""; return entrada.click(); }
+    if (d.foto) { fotoAberta = {chave:l.chave, item:k, id:d.foto, ci, ii}; $("#visor img").src = await fotoDados(d.foto); $("#visorRemover").textContent = t("remover");
+      $("#visorFechar").textContent = t("fechar"); return $("#visor").classList.add("on"); } }
+  if (alvo.id === "visorFechar") return $("#visor").classList.remove("on");
+  if (alvo.id === "visorRemover" && fotoAberta) { const x = S.lgvs[fotoAberta.chave]; x.fotos[fotoAberta.item] = (x.fotos[fotoAberta.item] || []).filter(id => id !== fotoAberta.id);
+    await DB.apagar("fotos", fotoAberta.id); delete cacheFotos[fotoAberta.id]; tocar(x); $("#visor").classList.remove("on"); return atualizarItem(x, fotoAberta.ci, fotoAberta.ii); }
+  if (alvo.id === "calcSinal") { const e = $("#calcDesvio"); let v = e.value.trim().replace(/[−–]/g, "-"); e.value = v.startsWith("-") ? v.slice(1) : "-" + v.replace(/^\+/, ""); return recalcular(); }
+  if (alvo.id === "calcCopiar") { const txt = $("#calcNovo").textContent; try { await navigator.clipboard.writeText(txt); aviso(t("copiado")); } catch (e) { aviso(txt); } }
+});
+document.addEventListener("input", ev => {
+  const e = ev.target, l = S.lgvs[S.ui.lgv];
+  if (e.id === "busca") { S.ui.busca = e.value; $("#listaLgvs").innerHTML = htmlLista(filtrados()); return; }
+  if (e.id === "calcAtual" || e.id === "calcDesvio") return recalcular();
+  if (!l || S.ui.tela !== "lgv") return;
+  if (e.dataset.campo) { l[e.dataset.campo] = e.value; return tocar(l); }
+  if (e.dataset.param !== undefined) { l.params[e.dataset.param] = e.value; if (e.dataset.param === l.campo_encoder) l.calc.novo = calcularNovo(e.value, l.calc.desvio); return tocar(l); }
+  if (e.dataset.obs !== undefined) { const item = e.closest(".item"); l.observacoes[chaveItem(l, +item.dataset.ci, +item.dataset.ii)] = e.value; return tocar(l); }
+});
+document.addEventListener("change", ev => {
+  const e = ev.target;
+  if (e.id === "arqPacote" && e.files[0]) { abrirPacote(e.files[0]); e.value = ""; }
+  if ((e.id === "arqCamera" || e.id === "arqGaleria") && e.files.length) receberFotos([...e.files]);
+  if (e.id === "calcLgv") { S.ui.calc = e.value; salvar(); render(); }
+  if (e.id === "selIdioma") { S.lang = e.value; salvar(); render(); }
+});
+function cron(l, acao){
+  const c = l.cron;
+  if (acao === "iniciar") { if (!c.inicio) c.inicio = isoLocal(); c.fim = null; c.rodando = true; c.retomado = Date.now(); }
+  else { if (c.rodando) { c.acumulado = tempoCron(l); c.rodando = false; c.retomado = null; } if (acao === "finalizar") c.fim = isoLocal(); }
+  if (c.acumulado > 0) l.horas = (c.acumulado / 3600).toFixed(2);
+  tocar(l);
+  if (S.ui.tela === "lgv" && S.ui.lgv === l.chave) { $("#botoesCron").innerHTML = htmlBotoesCron(l); $("#cInicio").textContent = horaCurta(c.inicio); $("#cFim").textContent = horaCurta(c.fim);
+    const h = $('[data-campo="horas"]'); if (h) h.value = l.horas; }
+}
+setInterval(() => { if (S.ui.tela === "lgv") { const l = S.lgvs[S.ui.lgv], e = $("#crono"); if (l && e) e.textContent = duracao(tempoCron(l)); } }, 1000);
+/* O relógio continua valendo se o app for fechado com ele rodando: o tempo é contado pelo horário, não por tiques. */
+document.addEventListener("visibilitychange", () => { if (document.hidden) salvarAgora(); });
+
+/* ============================ Arranque ============================ */
+(async function(){
+  try { const e = await DB.ler("kv", "estado"); if (e && e.ordem) { S.pack = e.pack; S.lgvs = e.lgvs || {}; S.ordem = e.ordem || []; S.lang = e.lang || "pt"; Object.assign(S.ui, e.ui || {}); }
+        else { const n = (navigator.language || "pt").slice(0, 2); if (L[n]) S.lang = n; } } catch (e) { console.error(e); }
+  render();
+  if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1"))
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+})();
+</script>
+</body>
+</html>
